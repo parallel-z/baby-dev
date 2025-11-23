@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.9.3/contracts/token/ERC20/ERC20.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.9.3/contracts/access/Ownable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.9.3/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.9.3/contracts/token/ERC20/extensions/ERC20Capped.sol";
+//合约声明
+contract AdvancedERC20 is ERC20, Ownable, ERC20Burnable, ERC20Capped {
+    //事件声明
+    event TokensMinted(address to, uint256 amount);
+    event TokensBurned(address from, uint256 amount);
+     //构造函数
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint256 cap_
+    ) 
+        ERC20(name_, symbol_)
+        ERC20Capped(cap_ * 10 ** decimals())
+        Ownable()
+    {}
+      //owner 才能mint
+    function _mint(address account, uint256 amount)
+        internal
+        override(ERC20, ERC20Capped)
+    {
+        super._mint(account, amount);
+    }
+      //销毁
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+        emit TokensMinted(to, amount);
+    }
+
+
+      //查询最大供应量
+    function getMaxSupply() external view returns (uint256) {
+        return cap();
+    }
+}
