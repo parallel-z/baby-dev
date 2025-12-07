@@ -1,0 +1,63 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SimpleVotingToken {
+
+    // 基本的代币信息
+    string public name = "VoteToken";
+    string public symbol = "VOTE";
+    uint8 public decimals = 18;
+    uint256 public totalSupply;
+
+    // 每个地址的余额
+    mapping(address => uint256) public balanceOf;
+
+    // 候选人结构
+    struct Candidate {
+        string name;
+        uint256 votes;
+    }
+
+    // 两个候选人
+    Candidate[] public candidates;
+
+    // 是否投过票
+    mapping(address => bool) public hasVoted;
+
+    // 构造函数
+    // 部署时给出两个候选人名字
+    constructor(string memory name1, string memory name2) {
+        // 创建候选人
+        candidates.push(Candidate(name1, 0));
+        candidates.push(Candidate(name2, 0));
+
+        // 给部署者铸造 1000 代币
+        totalSupply = 1000 * (10 ** decimals);
+        balanceOf(msg.sender) = totalSupply;
+    }
+
+    // 转账函数（用于把票分给别人）
+    function transfer(address to, uint256 amount) public returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Not enough tokens");
+
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+
+        return true;
+    }
+
+    // 简单投票，每人只能投一票
+    function vote(uint256 candidateId) public {
+        require(candidateId < 2, "Invalid candidate");
+        require(balanceOf[msg.sender] > 0, "No tokens, cannot vote");
+        require(hasVoted[msg.sender] == false, "Already voted");
+
+        hasVoted[msg.sender] = true;
+        candidates[candidateId].votes += 1;
+    }
+
+    // 获取候选人票数
+    function getVotes(uint256 candidateId) public view returns (uint256) {
+        return candidates[candidateId].votes;
+    }
+}
